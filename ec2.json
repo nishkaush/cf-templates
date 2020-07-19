@@ -1,0 +1,19 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "First simple ec2 instance",
+  "Resources": {
+    "MySimpleEC2": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": "ami-0227cc6eed3604312",
+        "InstanceType": "t2.micro",
+        "SecurityGroups": ["Nishant-ec2-security-group"],
+        "KeyName": "imac-key-pair",
+        "Tags": [
+          { "Key": "customName", "Value": "toBeDeleted" },
+          { "Key": "Func", "Value": "testing" }
+        ]
+      }
+    }
+  }
+}

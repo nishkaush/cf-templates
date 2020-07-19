@@ -1,0 +1,68 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "First simple ec2 instance",
+  "Resources": {
+    "MyLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "AssociatePublicIpAddress": false,
+        "IamInstanceProfile": "CodeDeploy-EC2-Instance-Profile",
+        "ImageId": "ami-0227cc6eed3604312",
+        "InstanceType": "t2.micro",
+        "KeyName": "imac-key-pair",
+        "LaunchConfigurationName": "cf-launch-config",
+        "SecurityGroups": ["sg-0b0dbfcfa7f6b2823"]
+      }
+    },
+    "SimpleTargetGroup": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "HealthCheckEnabled": true,
+        "HealthCheckIntervalSeconds": 10,
+        "Matcher": { "HttpCode": "200-299" },
+        "Name": "my-simple-target-group",
+        "Port": 4000,
+        "Protocol": "HTTP",
+        "VpcId": "vpc-12f5f076"
+      }
+    },
+    "MyASG": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AutoScalingGroupName": "my-simple-asg",
+        "AvailabilityZones": ["ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2c"],
+        "DesiredCapacity": "2",
+        "HealthCheckType": "EC2",
+        "LaunchConfigurationName": { "Ref": "MyLaunchConfig" },
+        "MaxSize": "4",
+        "MinSize": "2",
+        "TargetGroupARNs": [{ "Ref": "SimpleTargetGroup" }]
+      }
+    },
+    "MySimpleALB": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "IpAddressType": "ipv4",
+        "Name": "ALB-single-EC2-instance",
+        "SecurityGroups": ["sg-0ffea96ec4db8a83c"],
+        "Subnets": ["subnet-2f748d66", "subnet-5e0dc439", "subnet-0998b550"]
+      }
+    },
+    "MyListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "Type": "forward",
+            "ForwardConfig": {
+              "TargetGroups": [{ "TargetGroupArn": { "Ref": "SimpleTargetGroup" } }]
+            }
+          }
+        ],
+        "LoadBalancerArn": { "Ref": "MySimpleALB" },
+        "Port": 80,
+        "Protocol": "HTTP"
+      }
+    }
+  }
+}

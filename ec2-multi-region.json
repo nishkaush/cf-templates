@@ -1,0 +1,40 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Simple ec2 instance to be replicated across multiple regions",
+  "Mappings": {
+    "RegionalAMIMap": {
+      "us-east-1": { "ami": "ami-0d6c9655cfd101592" },
+      "eu-west-1": { "ami": "ami-0d2834510505e7b2e" },
+      "ap-southeast-2": { "ami": "ami-0227cc6eed3604312" }
+    },
+    "SecurityGroupsMap": {
+      "us-east-1": { "mysg": "ec2-sg-us-east-1" },
+      "eu-west-1": { "mysg": "ec2-sg-eu-west-1" },
+      "ap-southeast-2": { "mysg": "Nishant-ec2-security-group" }
+    },
+    "KeyPairsMap": {
+      "us-east-1": { "keypair": "keypair-virginia" },
+      "eu-west-1": { "keypair": "keypair-eu" },
+      "ap-southeast-2": { "keypair": "imac-key-pair" }
+    }
+  },
+  "Resources": {
+    "MySimpleEC2": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": { "Fn::FindInMap": ["RegionalAMIMap", { "Ref": "AWS::Region" }, "ami"] },
+        "InstanceType": "t2.micro",
+        "SecurityGroups": [
+          {
+            "Fn::FindInMap": ["SecurityGroupsMap", { "Ref": "AWS::Region" }, "mysg"]
+          }
+        ],
+        "KeyName": { "Fn::FindInMap": ["KeyPairsMap", { "Ref": "AWS::Region" }, "keypair"] },
+        "Tags": [
+          { "Key": "customName", "Value": "toBeDeleted" },
+          { "Key": "region", "Value": { "Ref": "AWS::Region" } }
+        ]
+      }
+    }
+  }
+}

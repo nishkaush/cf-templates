@@ -1,0 +1,29 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "First template to create a garbage bucket in S3",
+  "Resources": {
+    "GarbageBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "garbage-bucket",
+        "AccessControl": "PublicReadWrite",
+        "Tags": [
+          {
+            "Key": "name",
+            "Value": "nishant-bucket"
+          },
+          {
+            "Key": "envType",
+            "Value": "prod"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "BucketRef": {
+      "Value": { "Fn::GetAtt": ["GarbageBucket", "WebsiteURL"] },
+      "Description": "website Url of my bucket"
+    }
+  }
+}

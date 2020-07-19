@@ -1,0 +1,80 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "First simple ec2 instance",
+  "Resources": {
+    "MySimpleEC2": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": "ami-0227cc6eed3604312",
+        "InstanceType": "t2.micro",
+        "SecurityGroups": ["Nishant-ec2-security-group"],
+        "KeyName": "imac-key-pair",
+        "Tags": [
+          { "Key": "customName", "Value": "toBeDeleted" },
+          { "Key": "Func", "Value": "testing" }
+        ]
+      }
+    },
+    "SimpleTargetGroup": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "HealthCheckEnabled": true,
+        "HealthCheckIntervalSeconds": 10,
+        "Matcher": { "HttpCode": "200-299" },
+        "Name": "my-simple-target-group",
+        "Port": 3000,
+        "Protocol": "HTTP",
+        "VpcId": "vpc-12f5f076",
+        "Targets": [
+          {
+            "Id": { "Ref": "MySimpleEC2" },
+            "Port": 3000
+          }
+        ],
+        "TargetType": "instance"
+      }
+    },
+    "MySimpleALB": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "IpAddressType": "ipv4",
+        "Name": "ALB-single-EC2-instance",
+        "SecurityGroups": ["sg-0ffea96ec4db8a83c"],
+        "Subnets": ["subnet-2f748d66", "subnet-5e0dc439", "subnet-0998b550"]
+      }
+    },
+    "MyListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "Type": "forward",
+            "ForwardConfig": {
+              "TargetGroups": [{ "TargetGroupArn": { "Ref": "SimpleTargetGroup" } }]
+            }
+          }
+        ],
+        "LoadBalancerArn": { "Ref": "MySimpleALB" },
+        "Port": 80,
+        "Protocol": "HTTP"
+      }
+    },
+    "ListenerRule": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "Actions": [{ "Type": "forward", "TargetGroupArn": { "Ref": "SimpleTargetGroup" } }],
+        "Conditions": [
+          {
+            "Field": "http-header",
+            "HttpHeaderConfig": {
+              "HttpHeaderName": "User-Agent",
+              "Values": ["Chrome", "Mozilla"]
+            }
+          }
+        ],
+        "ListenerArn": { "Ref": "MyListener" },
+        "Priority": 1
+      }
+    }
+  }
+}
